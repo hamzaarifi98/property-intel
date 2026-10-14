@@ -1,0 +1,15 @@
+# City of Littleton (in Arapahoe, Douglas and Jefferson counties): zoning and permits.
+name = "Littleton"
+issuer = "the City of Littleton"
+
+[zoning]
+platform = "arcgis.point"
+source = "City of Littleton GIS (LittletonParcelZoning, Zoning Districts)"
+url = "https://ltngiswa.littletonco.gov/server/rest/services/City/LittletonParcelZoning/MapServer/2/query"
+fields = { zoning_code = "ZONECLASS", zoning_desc = "ZONEDESC", zoning_code_url = "BASE_DIST_DESC" }
+empty_note = "no zoning district at the parcel's point"
+
+[permits]
+platform = "etrakit"
+source = "City of Littleton permits (eTRAKiT, permit9.littletonco.gov)"
+url = "https://permit9.littletonco.gov/etrakit/Search/permit.aspx"

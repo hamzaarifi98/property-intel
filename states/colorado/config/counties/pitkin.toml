@@ -1,0 +1,67 @@
+# Pitkin County: parcels from the statewide layer, Clerk & Recorder on publicsearch.
+# Flood (FEMA) and business owners (Secretary of State) come from defaults.toml.
+# Not configured yet: assessor (Schneider qPublic), treasurer (EagleWeb), value_history,
+# jurisdiction (zoning, permits).
+name = "Pitkin"
+
+[[ids]]
+kind = "parcel number"
+digits = 12
+format = "############"
+example = "273707346004"
+
+[[ids]]
+kind = "account"
+pattern = "R\\d{6}"
+example = "R013480"
+
+# 1. Parcels: the statewide composite (OIT), Pitkin's rows only. It is refreshed
+# yearly, so values carry the county's "data received" date in as_of.
+[parcel]
+platform = "arcgis.parcels"
+source = "Colorado Public Parcels (OIT statewide composite)"
+url = "https://gis.colorado.gov/Public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/MapServer/0/query"
+filter = "countyName = 'Pitkin'"
+search_fields = ["parcel_id", "account"]
+page_size = 2000
+merge_rows = true                       # a parcel can have one row per owner
+date_fields = ["last_sale_date"]
+money_fields = ["last_sale_price", "appraised_total", "assessed_total"]
+as_of_field = "dateReceived"
+record_url_field = "URL"
+blank_note = "the county left this blank in the statewide layer"
+
+[parcel.fields]
+parcel_id = "parcel_id"
+account = "account"
+site_address = "situsAdd"
+site_city = "sitAddCty"
+site_zip = "sitAddZip"
+owner = "owner"
+owner2 = "owner2"
+owner_mail_street = "ownerAdd"
+owner_mail_city = "ownAddCty"
+owner_mail_state = "ownAddStt"
+owner_mail_zip = "ownAddZip"
+owner_mail_country = "ownAddCou"
+legal_description = "legalDesc"
+land_acres = "landAcres"
+land_sqft = "landSqft"
+subdivision_name = "subName"
+zoning_code = "zoningCode"
+zoning_desc = "zoningDesc"
+land_use_code = "landUseCde"
+land_use_desc = "landUseDsc"
+last_sale_date = "saleDate"
+last_sale_price = "salePrice"
+appraised_total = "apprValTot"
+assessed_total = "asedValTot"
+
+[parcel.notes]
+owner = "Primary surface owner (Colorado separates surface and mineral rights)"
+
+# 7. Clerk & Recorder
+[recorder]
+platform = "publicsearch"
+source = "Pitkin County Clerk & Recorder (pitkin.co.publicsearch.us)"
+host = "pitkin.co.publicsearch.us"

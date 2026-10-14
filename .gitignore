@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# lookup results hold real owners' names and addresses: keep them local
+results/

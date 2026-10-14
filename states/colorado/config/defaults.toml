@@ -1,0 +1,13 @@
+# Every Colorado county gets these sections unless its own config has one.
+
+# FEMA's national flood layers (NFHL): flood zone, high-risk area on the parcel, FIRM panel
+[flood]
+platform = "arcgis.flood"
+source = "FEMA National Flood Hazard Layer (hazards.fema.gov)"
+zones_url = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query"
+panels_url = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/3/query"
+panel_link_note = "FEMA's layer has no panel PDF link; the panel is on the FEMA Map Service Center (msc.fema.gov)"
+
+# Business owners: the Secretary of State's open data (statewide)
+[entity]
+platform = "co_sos"

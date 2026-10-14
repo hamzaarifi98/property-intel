@@ -1,0 +1,125 @@
+# Arapahoe County: which platform serves each step, and its settings.
+name = "Arapahoe"
+
+# Ids a user can type: the AIN (the statewide parcel_id) or the PIN (Treasurer account)
+[[ids]]
+kind = "ain"
+digits = 12
+format = "####-##-#-##-###"
+example = "2077-16-2-22-004"
+
+[[ids]]
+kind = "pin"
+max_digits = 9
+zero_pad = true
+example = "034472207"
+
+# 1. The county's parcel layer (~234k parcels; the layer its ArapaMAP viewer uses)
+[parcel]
+platform = "arcgis.parcels"
+source = "Arapahoe County GIS (InfoService parcel layer)"
+url = "https://gis.arapahoegov.com/arcgis/rest/services/InfoService/MapServer/12/query"
+page_size = 1000
+search_fields = ["PARCEL_ID", "PIN"]
+record_url = "https://parcelsearch.arapahoegov.com/PPINum.aspx?PPINum={parcel_id}"
+point_fields = ["Coordinate_X", "Coordinate_Y"]    # the county's point inside the parcel
+date_fields = ["last_sale_date"]                    # epoch milliseconds in the layer
+blank_note = "blank in the county GIS layer"
+
+[parcel.fields]                                     # ours = theirs
+parcel_id = "PARCEL_ID"                             # AIN
+account = "PIN"
+site_address = "Situs_Address"
+site_city = "City"
+site_zip = "Zip"
+owner = "Owner"
+owner_mail_street = "Owner_Mail_Address"
+owner_mail_city = "Owner_City"
+owner_mail_state = "Owner_State"
+owner_mail_zip = "Owner_Zip"
+owner_mail_country = "Owner_Cntry"
+neighborhood_code = "Neighborhood_Code"
+neighborhood_name = "Neighborhood"
+land_use_code = "PUC_Code"
+land_use_desc = "PUC"
+appraised_total = "Appr_Value"
+appraised_building = "Imp_Value"
+appraised_land = "Land_Value"
+assessed_total = "Assd_Value"
+taxable_total = "Taxable"
+last_sale_date = "Sale_Date"
+last_sale_price = "Price"
+last_sale_reception = "REC_NMBR"
+gis_area_sqft = "GIS_AREA"
+latitude = "Coordinate_Y"
+longitude = "Coordinate_X"
+
+[parcel.notes]
+owner = "Primary surface owner (Colorado separates surface and mineral rights)"
+neighborhood_code = "The statewide layer carries this in subCode for Arapahoe"
+neighborhood_name = "The statewide layer carries this in subName for Arapahoe"
+last_sale_date = "The Assessor's page can show a different date for the same reception number; see the sales observation"
+gis_area_sqft = "Polygon area computed by GIS, not the Assessor's land area"
+latitude = "County-provided point inside the parcel"
+longitude = "County-provided point inside the parcel"
+
+# 2. Assessor parcel page (in-house ASP.NET site)
+[assessor]
+platform = "arapahoegov.assessor"
+source = "Arapahoe County Assessor parcel page (parcelsearch.arapahoegov.com)"
+url = "https://parcelsearch.arapahoegov.com/PPINum.aspx"
+id_param = "PPINum"
+
+# 3. The Assessor's value-change layers: layer -> { tax year = field }.
+# Colorado reappraises in odd years; an even year repeats the year before.
+[value_history]
+platform = "arcgis.value_history"
+source = "Arapahoe County GIS (CustomCAMA value-change layers)"
+url = "https://gis.arapahoegov.com/arcgis/rest/services/CustomCAMA_WM/MapServer/{layer}/query"
+id_field = "PARCEL_ID"
+current = "appraised_total"
+
+[value_history.layers]
+75 = { 2023 = "tax_val", 2022 = "pr_val" }                                     # Value Change 2023
+76 = { 2021 = "F2021_Value", 2020 = "F2020_Aumentum_Value", 2018 = "F2018_Aumentum_Value" }
+78 = { 2017 = "F2017Value", 2016 = "F2016Value" }
+
+# 4. Treasurer (in-house ASP.NET site); the tax check uses its levy and statement hooks
+[treasurer]
+platform = "arapahoegov.treasurer"
+source = "Arapahoe County Treasurer tax search (taxsearch.arapahoegov.com)"
+url = "https://taxsearch.arapahoegov.com/ReReport.aspx"
+prior_year_url = "https://taxsearch.arapahoegov.com/PrevYear.aspx"
+bill_url = "https://taxsearch.arapahoegov.com/FileDownload.ashx?AIN={parcel_id}&PIN={account}"
+id_param = "PIN"
+
+# 5. Jurisdiction at the parcel's point; zoning and permits come from it
+[jurisdiction]
+platform = "arcgis.point"
+source = "Arapahoe County GIS (ArapaMAP / InfoService layers)"
+url = "https://gis.arapahoegov.com/arcgis/rest/services/InfoService/MapServer/11/query"
+fields = { jurisdiction = "JURISDICTION" }
+empty_note = "no jurisdiction at the parcel's point"
+
+# The county's copy of FEMA's flood layers (it links each panel's PDF)
+[flood]
+platform = "arcgis.flood"
+source = "Arapahoe County GIS (ArapaMAP / InfoService layers)"
+zones_url = "https://gis.arapahoegov.com/arcgis/rest/services/ArapaMAP/MapServer/380/query"
+panels_url = "https://gis.arapahoegov.com/arcgis/rest/services/ArapaMAP/MapServer/386/query"
+panel_link_field = "HYPERLINK"
+
+# 7. Clerk & Recorder
+[recorder]
+platform = "publicsearch"
+source = "Arapahoe County Clerk & Recorder (arapahoe.co.publicsearch.us)"
+host = "arapahoe.co.publicsearch.us"
+
+# Unincorporated land: county zoning and Public Works & Development permits
+[jurisdictions.UNINCORPORATED]
+issuer = "Arapahoe County (Public Works & Development)"
+zoning = { platform = "arcgis.point", source = "Arapahoe County GIS (ArapaMAP / InfoService layers)", url = "https://gis.arapahoegov.com/arcgis/rest/services/InfoService/MapServer/60/query", fields = { zoning_code = "ZONING", zoning_code_url = "HYPERLINK", zoning_case = "CASE_NUMBER", zoning_case_doc_url = "Zoning_Doc" }, empty_note = "no zoning district at the parcel's point" }
+permits = { platform = "accela", source = "Arapahoe County Public Works & Development permits (Accela Citizen Access, aca-prod.accela.com/arapahoe)", agency = "arapahoe" }
+
+[jurisdictions.LITTLETON]
+city = "littleton"
